@@ -1,1 +1,6 @@
-node_modules
+.DS_Store
+private/
+node_modules/
+.eslintrc
+*.log
+_index.html
