@@ -1,4 +1,3 @@
-
 const editor = grapesjs.init({
   // Indicate where to init the editor. You can also pass an HTMLElement
   container: '#gjs',
@@ -45,4 +44,4 @@ const editor = grapesjs.init({
   },
 });
 
-editor();
+editor()
