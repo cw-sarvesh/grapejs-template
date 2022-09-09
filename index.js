@@ -21,12 +21,18 @@ const editor = grapesjs.init({
         content: `<section>
           <h1>This is a simple title</h1>
           <div>This is just a Lorem text: Lorem ipsum dolor sit amet</div>
+          <img src="http://placehold.it/500x300" alt="">
         </section>`,
       },
       {
         id: 'text',
         label: 'Text',
         content: '<div data-gjs-type="text">Insert your text here</div>',
+      },
+      {
+        id: 'h1',
+        label: 'H1 Text',
+        content: '<h1 data-gjs-type="text">Insert your text here</h1>',
       },
       {
         id: 'image',
