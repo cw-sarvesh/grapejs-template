@@ -1,12 +1,64 @@
+// Custom components with css section
+const myNewComponentTypes = (editor) => {
+  editor.DomComponents.addType('my-input-type', {
+    // Make the editor understand when to bind `my-input-type`
+    isComponent: (el) => el.tagName === 'INPUT',
+    // Model definition
+    model: {
+      // Default properties
+      defaults: {
+        tagName: 'input',
+        draggable: 'form, form *', // Can be dropped only inside `form` elements
+        droppable: false, // Can't drop other elements inside
+        attributes: {
+          // Default attributes
+          type: 'text',
+          name: 'default-name',
+          placeholder: 'My custom input type',
+        },
+        traits: ['name', 'placeholder', { type: 'checkbox', name: 'required' }],
+        styles: `
+        .cmp-css { color: red }
+        @media (max-width: 992px) {
+          .cmp-css{ color: darkred; }
+        }
+      `,
+      },
+    },
+  });
+};
 const editor = grapesjs.init({
   // Indicate where to init the editor. You can also pass an HTMLElement
   container: '#gjs',
   // Get the content for the canvas directly from the element
   // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
+  plugins: [myNewComponentTypes],
   fromElement: true,
   // Size of the editor
-  height: '300px',
+  height: '100%',
   width: 'auto',
+  // JSX support
+  domComponents: {
+    processor: (obj) => {
+      if (obj.$$typeof) {
+        // eg. this is a React Element
+        const compDef = {
+          type: obj.type,
+          components: obj.props.children,
+        };
+        return compDef;
+      }
+    },
+  },
+  // For external Libraries
+  canvas: {
+    scripts: ['https://code.jquery.com/jquery-3.6.1.min.js'],
+    // The same would be for external styles
+    styles: [
+      'https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css',
+      './carousel.css',
+    ],
+  },
   // Disable the storage manager for the moment
   storageManager: {
     id: 'gjs-', // Prefix identifier that will be used inside storing and loading
@@ -189,9 +241,13 @@ const editor = grapesjs.init({
         content: '<div data-gjs-type="text">Insert your text here</div>',
       },
       {
-        id: 'h1',
-        label: 'H1 Text',
-        content: '<h1 data-gjs-type="text">Insert your text here</h1>',
+        id: 'input',
+        label: 'input',
+        attributes: {
+          name: 'my-test',
+          title: 'hello',
+        },
+        content: `<input data-gjs-type="my-input-type" />`,
       },
       {
         id: 'h1',
@@ -301,5 +357,74 @@ editor.Commands.add('set-device-desktop', {
 });
 editor.Commands.add('set-device-mobile', {
   run: (editor) => editor.setDevice('Mobile'),
+});
+// For adding starting default template
+// editor.addComponents(`<div>
+//   <img src="https://path/image" />
+//   <span title="foo">Hello world!!!</span>
+// </div>`);
+// Custom components with js section
+const script = function (props) {
+  const myLibOpts = {
+    prop1: props.myprop1,
+    prop2: props.myprop2,
+  };
+  console.log('My lib options: ' + JSON.stringify(myLibOpts));
+  // this.innerHTML = 'inner content';
+  let carousel = document.querySelector('.carousel');
+  let back = document.querySelector('.back');
+  let next = document.querySelector('.next');
+  let current = 0;
+  let cellCount = 6;
+  const rotateCarousel = () => {
+    const angle = (current / cellCount) * -360;
+    carousel.style.transform = 'translateZ(-288px) rotateY(' + angle + 'deg)';
+    carousel.style.transition = 'all 0.75s ease-in-out';
+  };
+  back.addEventListener('click', () => {
+    current--;
+    rotateCarousel();
+  });
+  next.addEventListener('click', () => {
+    current++;
+    rotateCarousel();
+  });
+};
+editor.Components.addType('comp-with-js', {
+  model: {
+    defaults: {
+      script,
+      attributes: { class: 'cmp-css' },
+      components: `<div class="scene">
+  <div class="carousel">
+    <div class="carousel_cell">1</div>
+    <div class="carousel_cell">2</div>
+    <div class="carousel_cell">3</div>
+    <div class="carousel_cell">4</div>
+    <div class="carousel_cell">5</div>
+    <div class="carousel_cell">6</div>
+  </div>
+</div>
+
+<div class=bloc_button>
+<div>
+  <button type="button" class="back"><svg viewBox="0 0 256 512" width="50" title="angle-left">
+  <path d="M31.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L127.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L201.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34z" />
+    </svg></button></div>
+
+
+<div>
+  <button type="button" class="next"><svg viewBox="0 0 256 512" width="50" title="angle-right">
+  <path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z" />
+    </svg></button></div>
+</div>
+`,
+    },
+  },
+});
+editor.Blocks.add('carousel-block', {
+  label: 'Carousel Block',
+  attributes: { class: 'fa fa-text' },
+  content: { type: 'comp-with-js' },
 });
 editor();
